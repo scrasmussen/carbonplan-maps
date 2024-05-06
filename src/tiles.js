@@ -82,12 +82,14 @@ export const createTiles = (regl, opts) => {
 
     let primitive,
       initialize,
+      initializeDif,
       attributes = {},
       uniforms = {}
 
     if (mode === 'grid' || mode === 'dotgrid') {
       primitive = 'points'
       initialize = () => regl.buffer()
+      initializeDif = () => regl.buffer()
       this.bands.forEach((k) => (attributes[k] = regl.prop(k)))
       uniforms = {}
     }
@@ -392,6 +394,16 @@ export const createTiles = (regl, opts) => {
                   tileIndex[0],
                   tileIndex[1]
                 )
+                const chunksDif = getChunks(
+                  this.selector,
+                  this.dimensions,
+                  this.coordinates,
+                  this.shape,
+                  this.chunksDif,
+                  tileIndex[0],
+                  tileIndex[1]
+                )
+
                 const initialHash = getSelectorHash(this.selector)
 
                 if (tile.hasPopulatedBuffer(this.selector)) {
@@ -401,7 +413,7 @@ export const createTiles = (regl, opts) => {
 
                 if (tile.isLoadingChunks(chunks)) {
                   // If tile is already loading all chunks...
-                  tile.chunksLoaded(chunks).then(() => {
+                  tile.chunksLoaded(chunks, chunksDif).then(() => {
                     // ...wait for ready state and populate buffers if selector is still relevant.
                     if (initialHash === getSelectorHash(this.selector)) {
                       tile.populateBuffersSync(this.selector)
@@ -420,7 +432,7 @@ export const createTiles = (regl, opts) => {
                   } else {
                     const loadingID = this.setLoading('chunk')
                     tile
-                      .populateBuffers(chunks, this.selector)
+                      .populateBuffers(chunks, chunksDif, this.selector)
                       .then((dataUpdated) => {
                         this.invalidate()
                         resolve(dataUpdated)
@@ -461,10 +473,19 @@ export const createTiles = (regl, opts) => {
             tileIndex[0],
             tileIndex[1]
           )
+          const chunksDif = getChunks(
+            selector,
+            this.dimensions,
+            this.coordinatesDif,
+            this.shape,
+            this.chunks,
+            tileIndex[0],
+            tileIndex[1]
+          )
 
           if (!tile.hasLoadedChunks(chunks)) {
             const loadingID = this.setLoading('chunk')
-            await tile.loadChunks(chunks)
+            await tile.loadChunks(chunks, chunksDif)
             this.clearLoading(loadingID)
           }
         })
