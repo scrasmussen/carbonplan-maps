@@ -43,6 +43,7 @@ const Raster = (props) => {
       }),
     [props.source, props.version, props.variable]
   )
+  let filterValue = props.filterValue
 
   const queryRegion = async (r, s) => {
     const queryStart = new Date().getTime()
@@ -113,6 +114,11 @@ const Raster = (props) => {
       map.triggerRepaint()
     }
   }, [index])
+
+  useEffect(() => {
+    console.log("raster111", filterValue)
+    tiles.current.updateFilter({ filterValue })
+  }, [filterValue])
 
   useEffect(() => {
     tiles.current.updateSelector({ selector })
