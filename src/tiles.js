@@ -435,8 +435,7 @@ export const createTiles = (regl, opts) => {
                     resolve(false)
                   } else {
                     const loadingID = this.setLoading('chunk')
-                    tile
-                      .populateBuffers(chunks, chunksDif, this.selector)
+                    tile.populateBuffers(chunks, chunksDif, this.selector, sources)
                       .then((dataUpdated) => {
                         this.invalidate()
                         resolve(dataUpdated)
