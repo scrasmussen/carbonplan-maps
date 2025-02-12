@@ -107,15 +107,6 @@ export const createTiles = (regl, opts) => {
     customUniforms.forEach((k) => (uniforms[k] = regl.this(k)))
 
 
-    this.cameraInitialized = new Promise((resolve) => {
-      let shouldResolve = true
-      this._resolveCameraInitialized = () => {
-        if (shouldResolve) {
-          resolve()
-          shouldResolve = false
-        }
-      }
-    })
 
     this.initialized = new Promise((resolve) => {
       const loadingID = this.setLoading('metadata')
@@ -371,8 +362,6 @@ export const createTiles = (regl, opts) => {
         projection: this.projection,
       })
 
-      this._resolveCameraInitialized()
-
       if (this.size && Object.keys(this.active).length === 0) {
         this.clearLoading(null, { forceClear: true })
       }
@@ -455,7 +444,7 @@ export const createTiles = (regl, opts) => {
     }
 
     this.queryRegion = async (region, selector) => {
-      await Promise.all([this.initialized, this.cameraInitialized])
+      await this.initialized
 
       const tiles = getTilesOfRegion(
         region,
