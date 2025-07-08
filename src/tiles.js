@@ -33,6 +33,7 @@ export const createTiles = (regl, opts) => {
     display,
     variable,
     filterValue,
+    setDisplay,
     selector = {},
     uniforms: customUniforms = {},
     frag: customFrag,
