@@ -21,6 +21,12 @@ const initializeStore = async (source, sourceDif, version, variable, coordinateK
       await new Promise((resolve) =>
         zarr(window.fetch, version).openGroup(sourceDif, (err, l, m) => {
         if (err) {
+          let returnUrl = 'https://hydro.rap.ucar.edu/hydro-climate-eval'
+          let returnLabel = "Return to hydro-climate-eval";
+          if (sourceDif.includes("global")) {
+            returnUrl += '/global';
+            returnLabel = "Return to global climate eval";
+          }
           document.body.innerHTML = `
           <div style="font-family: sans-serif; font-size: 24px; text-align: center; margin-top: 20vh;">
             Dataset not found: <br />
@@ -43,8 +49,8 @@ const initializeStore = async (source, sourceDif, version, variable, coordinateK
               }
             </style>
 
-            <a href="https://hydro.rap.ucar.edu/hydro-climate-eval" class="button-link">
-              Return to hydro-climate-eval
+            <a href="${returnUrl}" class="button-link">
+              ${returnLabel}
             </a>
             <br />
           </div>
@@ -88,6 +94,13 @@ const initializeStore = async (source, sourceDif, version, variable, coordinateK
       await new Promise((resolve) =>
         zarr(window.fetch, version).openGroup(source, (err, l, m) => {
         if (err) {
+          let returnUrl = 'https://hydro.rap.ucar.edu/hydro-climate-eval';
+          let returnLabel = "Return to hydro-climate-eval";
+          if (source.includes("global")) {
+            returnUrl += '/global';
+            returnLabel = "Return to global climate eval";
+          }
+
           document.body.innerHTML = `
           <div style="font-family: sans-serif; font-size: 24px; text-align: center; margin-top: 20vh;">
             Dataset not found: <br />
@@ -110,8 +123,8 @@ const initializeStore = async (source, sourceDif, version, variable, coordinateK
               }
             </style>
 
-            <a href="https://hydro.rap.ucar.edu/hydro-climate-eval" class="button-link">
-              Return to hydro-climate-eval
+            <a href="${returnUrl}" class="button-link">
+              ${returnLabel}
             </a>
             <br />
           </div>
