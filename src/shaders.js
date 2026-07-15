@@ -105,6 +105,35 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
   ${customUniforms.map((d) => `uniform float ${d};`).join('')}
   `
 
+  const textureCoordinates = sh(
+    `
+    // By default (mercator projection), index into the texture using uv.
+    vec2 coord = uv;
+
+    // Correct texture coordinates when displaying an equirectangular raster
+    // on the Web Mercator map.
+    if (projection == 1.0) {
+      float scale = pixelRatio * 512.0;
+      float mag = pow(2.0, zoom);
+      float numTiles = pow(2.0, level);
+      float sizeRad = PI / numTiles;
+
+      float y = gl_FragCoord.y / viewportHeight;
+      float delta = 1.0 - centerY;
+      float mercatorY = viewportHeight * (y - 0.5) / (scale * mag) + delta;
+      vec2 lookup = mercatorInvert(
+        (uv.y * 2.0 - 1.0) * PI,
+        (mercatorY * 2.0 - 1.0) * PI
+      );
+      float rescaledX = lookup.x / 360.0 + 0.5;
+      float rescaledY = order.y * (latBase - radians(lookup.y)) / sizeRad;
+
+      coord = vec2(rescaledY, rescaledX);
+    }
+    `,
+    ['texture']
+  )
+
   if (!customFrag)
     return `
     ${declarations}
@@ -112,34 +141,8 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
     #define PI 3.1415926535897932384626433832795
 
     void main() {
-      ${sh(
-        `
-      // By default (mercator projection), index into vars[0] using uv
-      vec2 coord = uv;
-
-      // Equirectangular
-      if (projection == 1.0) {
-        float scale = pixelRatio * 512.0;
-        float mag = pow(2.0, zoom);
-        float numTiles = pow(2.0, level);
-        float sizeRad = PI / numTiles;
-
-        // (1 => 0)
-        float y = gl_FragCoord.y / viewportHeight;
-        // (1 => 0)
-        float delta = 1.0 - centerY;
-        float mercatorY = viewportHeight * (y - 0.5) / (scale * mag) + delta;
-        vec2 lookup = mercatorInvert((uv.y * 2.0 - 1.0) * PI, (mercatorY * 2.0 - 1.0) * PI);
-        float rescaledX = lookup.x / 360.0 + 0.5;
-        float rescaledY = order.y * (latBase - radians(lookup.y)) / sizeRad;
-
-        coord = vec2(rescaledY, rescaledX);
-      }
-
-      float ${vars[0]} = texture2D(${vars[0]}, coord).x;
-      `,
-        ['texture']
-      )}
+      ${textureCoordinates}
+      ${sh(`float ${vars[0]} = texture2D(${vars[0]}, coord).x;`, ['texture'])}
       ${sh(`float ${vars[0]} = ${vars[0]}v;`, ['grid', 'dotgrid'])}
       ${sh(
         `
@@ -161,9 +164,13 @@ export const frag = (mode, vars, customFrag, customUniforms) => {
   if (customFrag)
     return `
     ${declarations}
+    ${mercatorInvert}
+    #define PI 3.1415926535897932384626433832795
+
     void main() {
+      ${textureCoordinates}
       ${sh(
-        `${vars.map((d) => `float ${d} = texture2D(${d}, uv).x;`).join('')}`,
+        `${vars.map((d) => `float ${d} = texture2D(${d}, coord).x;`).join('')}`,
         ['texture']
       )}
       ${sh(`${vars.map((d) => `float ${d} = ${d}v;`).join('')}`, [
