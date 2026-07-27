@@ -39,12 +39,24 @@ const Raster = (props) => {
   const store = useMemo(
     () =>
       new ZarrStore({
-        source: props.source,
+        source: props.sources ? props.sources[0] : props.source,
         version: props.version,
         variable: props.variable,
         coordinateKeys: Object.keys(selector),
       }),
-    [props.source, props.version, props.variable]
+    [props.sources && props.sources[0], props.source, props.version, props.variable]
+  )
+  const storeDif = useMemo(
+    () =>
+      props.sourceDif
+        ? new ZarrStore({
+            source: props.sourceDif,
+            version: props.version,
+            variable: props.variable,
+            coordinateKeys: Object.keys(selector),
+          })
+        : null,
+    [props.sourceDif, props.version, props.variable]
   )
   let filterValue = props.filterValue
 
@@ -86,11 +98,19 @@ const Raster = (props) => {
   }, [store])
 
   useEffect(() => {
+    if (!storeDif) return
+    return () => {
+      storeDif.cleanup()
+    }
+  }, [storeDif])
+
+  useEffect(() => {
     tiles.current = createTiles(regl, {
       ...props,
       setLoading,
       clearLoading,
       store,
+      storeDif,
       invalidate: () => {
         map.triggerRepaint()
       },
@@ -98,7 +118,7 @@ const Raster = (props) => {
         setRegionDataInvalidated(new Date().getTime())
       },
     })
-  }, [store])
+  }, [store, storeDif])
 
   useEffect(() => {
     if (props.setLoading) {

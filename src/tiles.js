@@ -48,6 +48,8 @@ export const createTiles = (regl, opts) => {
     projection,
     maxCachedTiles = 500,
     store,
+    storeDif,
+    sources,
   }) {
     this.tiles = {}
     this.active = {}
@@ -119,10 +121,16 @@ export const createTiles = (regl, opts) => {
     }
     this.store = store
 
+    this.storeDif = storeDif
+    this.sources = sources
+
     this.initialized = (async () => {
       const loadingID = this.setLoading('metadata')
 
-      await this.store.initialized()
+      await Promise.all([
+        this.store.initialized(),
+        this.storeDif ? this.storeDif.initialized() : Promise.resolve(),
+      ])
       const {
         metadata,
         dimensions,
@@ -136,6 +144,13 @@ export const createTiles = (regl, opts) => {
         tileSize,
         crs,
       } = this.store.describe()
+
+      if (this.storeDif) {
+        const { chunks: chunksDif, coordinates: coordinatesDif } =
+          this.storeDif.describe()
+        this.chunksDif = chunksDif
+        this.coordinatesDif = coordinatesDif
+      }
 
       if (setMetadata) setMetadata(metadata)
       this.maxZoom = maxZoom
@@ -176,6 +191,7 @@ export const createTiles = (regl, opts) => {
           [1, 1]
         )
         initialize = () => regl.texture(emptyTexture)
+        initializeDif = () => regl.texture(emptyTexture)
       }
 
       this.ndim = this.dimensions.length
@@ -327,16 +343,29 @@ export const createTiles = (regl, opts) => {
         this._removeOldestTile()
         const loadChunk = (chunk) =>
           this.store.getChunk(`${level}/${this.variable}`, chunk)
+        const loadChunkDif = this.storeDif
+          ? (chunk, callback) => {
+              this.storeDif
+                .getChunk(`${level}/${this.variable}`, chunk)
+                .then((data) => callback(null, data))
+                .catch((err) => callback(err))
+            }
+          : (chunk, callback) => callback(null, undefined)
 
         this.tiles[key] = new Tile({
           key,
           loader: loadChunk,
+          loaderDif: loadChunkDif,
           shape: this.shape,
           chunks: this.chunks,
+          chunksDif: this.chunksDif,
           dimensions: this.dimensions,
           coordinates: this.coordinates,
           bands: this.bands,
           initializeBuffer: initialize,
+          initializeBufferDif: initializeDif,
+          filterValue: this.filterValue,
+          setDisplay: setDisplay,
         })
       }
 

@@ -2,7 +2,7 @@ import React, { useEffect, useCallback, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { useMap } from './map-provider'
 
-export const useControls = () => {
+export const useControls = (zoomArgs) => {
   const { map } = useMap()
   const { center, setCenter, zoom, setZoom, onZoomChange, mapId } = zoomArgs
   const updatingFromParent = useRef(false)
