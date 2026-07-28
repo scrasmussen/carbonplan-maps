@@ -1,12 +1,27 @@
 {
   "name": "@carbonplan/maps",
-  "version": "3.4.1",
+  "version": "3.6.0",
   "description": "interactive data-driven web maps",
   "main": "src/index.js",
   "module": "dst/index.esm.js",
+  "exports": {
+    ".": {
+      "import": "./dst/index.esm.js",
+      "require": "./dst/index.js"
+    },
+    "./core": {
+      "import": "./dst/core.esm.js",
+      "require": "./dst/core.js"
+    },
+    "./mapbox.css": "./mapbox.css"
+  },
   "scripts": {
-    "build": "rimraf dst && microbundle src/index.js -o dst/index.js --no-compress --jsx React.createElement -f modern,es,cjs --jsxFragment React.Fragment",
-    "watch": "microbundle watch src/index.js -o dst/index.js --no-compress --jsx React.createElement -f modern,es,cjs --jsxFragment React.Fragment",
+    "build": "rimraf dst && npm run build:main && npm run build:core",
+    "build:main": "microbundle src/index.js -o dst/index.js --no-compress --jsx React.createElement -f modern,es,cjs --jsxFragment React.Fragment",
+    "build:core": "microbundle src/core.js -o dst/core.js --no-compress --jsx React.createElement -f modern,es,cjs --jsxFragment React.Fragment",
+    "watch": "npm run watch:main & npm run watch:core",
+    "watch:main": "microbundle watch src/index.js -o dst/index.js --no-compress --jsx React.createElement -f modern,es,cjs --jsxFragment React.Fragment",
+    "watch:core": "microbundle watch src/core.js -o dst/core.js --no-compress --jsx React.createElement -f modern,es,cjs --jsxFragment React.Fragment",
     "test": "NODE_ENV=test jest --watch",
     "test:ci": "NODE_ENV=test jest --ci --reporters='default'",
     "format": "prettier --write 'src/**/*.js'"
@@ -19,6 +34,7 @@
     "carbonplan",
     "webgl",
     "mapbox",
+    "maplibre",
     "regl",
     "mapping"
   ],
@@ -52,5 +68,14 @@
   "peerDependencies": {
     "react": ">=18",
     "react-dom": ">=18"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.16.4",
+    "@carbonplan/prettier": "^1.2.0",
+    "babel-jest": "^30.4.1",
+    "jest": "^30.4.2",
+    "microbundle": "^0.15.1",
+    "prettier": "^2.2.1",
+    "rimraf": "3.0.2"
   }
 }
