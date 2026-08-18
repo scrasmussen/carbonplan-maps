@@ -64,7 +64,7 @@ class Tile {
     bands,
     initializeBuffer,
     initializeBufferDif,
-    filterValue,
+    filterValue = {},
     setDisplay,
   }) {
     this.key = key
@@ -326,7 +326,7 @@ class Tile {
           }: ${chunks.join(', ')}`
         )
       }
-     const filterValue = this.filterValue.filterValue
+     const filterValue = this.filterValue
      if (filterValue["Dif."]) {
        if (chunksDif.length !== 1) {
          throw new Error(

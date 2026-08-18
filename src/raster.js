@@ -17,6 +17,7 @@ const Raster = (props) => {
     regionOptions = {},
     selector = {},
     uniforms = {},
+    filterValue = {},
     setMapVal,
     zoomArgs,
   } = props
@@ -58,8 +59,6 @@ const Raster = (props) => {
         : null,
     [props.sourceDif, props.version, props.variable]
   )
-  let filterValue = props.filterValue
-
   const queryRegion = async (r, s) => {
     const queryStart = new Date().getTime()
     lastQueried.current = queryStart
@@ -107,6 +106,10 @@ const Raster = (props) => {
   useEffect(() => {
     tiles.current = createTiles(regl, {
       ...props,
+      display,
+      opacity,
+      clim,
+      filterValue,
       setLoading,
       clearLoading,
       store,
@@ -156,7 +159,7 @@ const Raster = (props) => {
   }, [index])
 
   useEffect(() => {
-    tiles.current.updateFilter({ filterValue })
+    tiles.current.updateFilter(filterValue)
   }, [filterValue])
 
   useEffect(() => {
